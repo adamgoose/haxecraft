@@ -1,0 +1,7 @@
+-cp src
+-lua app.lua
+-lib hxdefold
+-dce full
+-D analyzer-optimize
+-D lua-vanilla
+--macro include("", true, null, ["src"])
