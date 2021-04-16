@@ -10,5 +10,11 @@
     "type": "float32",
     "count": 3,
     "data": []
+  },
+  {
+    "name": "uv",
+    "type": "float32",
+    "count": 2,
+    "data": []
   }
 ]

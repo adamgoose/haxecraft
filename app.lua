@@ -196,6 +196,7 @@ local Class = _hx_e();
 local Enum = _hx_e();
 
 local Array = _hx_e()
+local Vector2 = _hx_e()
 __defold_support_Script = _hx_e()
 local Chunk = _hx_e()
 local Face = _hx_e()
@@ -521,6 +522,16 @@ Array.prototype.resize = function(self,len)
   end;
 end
 
+Vector2.new = function(x,y) 
+  local self = _hx_new()
+  Vector2.super(self,x,y)
+  return self
+end
+Vector2.super = function(self,x,y) 
+  self.x = x;
+  self.y = y;
+end
+
 __defold_support_Script.new = function() 
   local self = _hx_new()
   __defold_support_Script.super(self)
@@ -572,6 +583,7 @@ end
 Chunk.prototype.updateChunk = function(self,_self) 
   _self.vertices = _hx_tab_array({}, 0);
   _self.normals = _hx_tab_array({}, 0);
+  _self.uvs = _hx_tab_array({}, 0);
   local _g = 0;
   local _g1 = self.chunkSize.x;
   while (_g < _g1) do 
@@ -594,32 +606,32 @@ Chunk.prototype.updateChunk = function(self,_self)
         end;
         local face = Face.Top;
         if (self:neighborIsEmpty(_self, block.position, face)) then 
-          __haxe_Log.trace("block is empty", _hx_o({__fields__={fileName=true,lineNumber=true,className=true,methodName=true},fileName="src/Chunk.hx",lineNumber=57,className="Chunk",methodName="updateChunk"}));
+          __haxe_Log.trace("block is empty", _hx_o({__fields__={fileName=true,lineNumber=true,className=true,methodName=true},fileName="src/Chunk.hx",lineNumber=70,className="Chunk",methodName="updateChunk"}));
           self:addVertices(_self, block.position, face);
         end;
         local face = Face.Bottom;
         if (self:neighborIsEmpty(_self, block.position, face)) then 
-          __haxe_Log.trace("block is empty", _hx_o({__fields__={fileName=true,lineNumber=true,className=true,methodName=true},fileName="src/Chunk.hx",lineNumber=57,className="Chunk",methodName="updateChunk"}));
+          __haxe_Log.trace("block is empty", _hx_o({__fields__={fileName=true,lineNumber=true,className=true,methodName=true},fileName="src/Chunk.hx",lineNumber=70,className="Chunk",methodName="updateChunk"}));
           self:addVertices(_self, block.position, face);
         end;
         local face = Face.Left;
         if (self:neighborIsEmpty(_self, block.position, face)) then 
-          __haxe_Log.trace("block is empty", _hx_o({__fields__={fileName=true,lineNumber=true,className=true,methodName=true},fileName="src/Chunk.hx",lineNumber=57,className="Chunk",methodName="updateChunk"}));
+          __haxe_Log.trace("block is empty", _hx_o({__fields__={fileName=true,lineNumber=true,className=true,methodName=true},fileName="src/Chunk.hx",lineNumber=70,className="Chunk",methodName="updateChunk"}));
           self:addVertices(_self, block.position, face);
         end;
         local face = Face.Right;
         if (self:neighborIsEmpty(_self, block.position, face)) then 
-          __haxe_Log.trace("block is empty", _hx_o({__fields__={fileName=true,lineNumber=true,className=true,methodName=true},fileName="src/Chunk.hx",lineNumber=57,className="Chunk",methodName="updateChunk"}));
+          __haxe_Log.trace("block is empty", _hx_o({__fields__={fileName=true,lineNumber=true,className=true,methodName=true},fileName="src/Chunk.hx",lineNumber=70,className="Chunk",methodName="updateChunk"}));
           self:addVertices(_self, block.position, face);
         end;
         local face = Face.Far;
         if (self:neighborIsEmpty(_self, block.position, face)) then 
-          __haxe_Log.trace("block is empty", _hx_o({__fields__={fileName=true,lineNumber=true,className=true,methodName=true},fileName="src/Chunk.hx",lineNumber=57,className="Chunk",methodName="updateChunk"}));
+          __haxe_Log.trace("block is empty", _hx_o({__fields__={fileName=true,lineNumber=true,className=true,methodName=true},fileName="src/Chunk.hx",lineNumber=70,className="Chunk",methodName="updateChunk"}));
           self:addVertices(_self, block.position, face);
         end;
         local face = Face.Near;
         if (self:neighborIsEmpty(_self, block.position, face)) then 
-          __haxe_Log.trace("block is empty", _hx_o({__fields__={fileName=true,lineNumber=true,className=true,methodName=true},fileName="src/Chunk.hx",lineNumber=57,className="Chunk",methodName="updateChunk"}));
+          __haxe_Log.trace("block is empty", _hx_o({__fields__={fileName=true,lineNumber=true,className=true,methodName=true},fileName="src/Chunk.hx",lineNumber=70,className="Chunk",methodName="updateChunk"}));
           self:addVertices(_self, block.position, face);
         end;until true
         if _hx_continue_3 then 
@@ -632,13 +644,15 @@ Chunk.prototype.updateChunk = function(self,_self)
   end;
   local buf = _G.buffer.create(_self.vertices.length, {
 			{ name = hash("position"), type=buffer.VALUE_TYPE_FLOAT32, count = 3 },
-			{ name = hash("normal"), type=buffer.VALUE_TYPE_FLOAT32, count = 3 }
+			{ name = hash("normal"), type=buffer.VALUE_TYPE_FLOAT32, count = 3 },
+			{ name = hash("uv"), type=buffer.VALUE_TYPE_FLOAT32, count = 2 }
 		});
   local pos = _G.buffer.get_stream(buf, "position");
   local nor = _G.buffer.get_stream(buf, "normal");
-  _G.pprint(_self.vertices);
+  local uv = _G.buffer.get_stream(buf, "uv");
+  _G.pprint(_self.uvs);
   local i = 1;
-  local _g = 1;
+  local _g = 0;
   local _g1 = _self.vertices.length;
   while (_g < _g1) do 
     _g = _g + 1;
@@ -650,6 +664,16 @@ Chunk.prototype.updateChunk = function(self,_self)
     nor[i + 1] = _self.normals[j].y;
     nor[i + 2] = _self.normals[j].z;
     i = i + 3;
+  end;
+  local i = 1;
+  local _g = 0;
+  local _g1 = _self.uvs.length;
+  while (_g < _g1) do 
+    _g = _g + 1;
+    local j = _g - 1;
+    uv[i] = _self.uvs[j].x;
+    uv[i + 1] = _self.uvs[j].y;
+    i = i + 2;
   end;
   local res = _G.go.get("#mesh", "vertices");
   _G.resource.set_buffer(res, buf);
@@ -683,11 +707,17 @@ end
 Chunk.prototype.addVertices = function(self,_self,p,face) 
   if (face[1] == 1) then 
     _self.vertices:push(_G.vmath.vector3(p.x, p.y + self.blockSize, p.z));
+    _self.uvs:push(Vector2.new(0, 0));
     _self.vertices:push(_G.vmath.vector3(p.x, p.y + self.blockSize, p.z + self.blockSize));
+    _self.uvs:push(Vector2.new(0, 1));
     _self.vertices:push(_G.vmath.vector3(p.x + self.blockSize, p.y + self.blockSize, p.z + self.blockSize));
+    _self.uvs:push(Vector2.new(1, 1));
     _self.vertices:push(_G.vmath.vector3(p.x, p.y + self.blockSize, p.z));
+    _self.uvs:push(Vector2.new(0, 0));
     _self.vertices:push(_G.vmath.vector3(p.x + self.blockSize, p.y + self.blockSize, p.z + self.blockSize));
+    _self.uvs:push(Vector2.new(1, 1));
     _self.vertices:push(_G.vmath.vector3(p.x + self.blockSize, p.y + self.blockSize, p.z));
+    _self.uvs:push(Vector2.new(1, 0));
     _self.normals:push(_G.vmath.vector3(0, 1, 0));
     _self.normals:push(_G.vmath.vector3(0, 1, 0));
     _self.normals:push(_G.vmath.vector3(0, 1, 0));

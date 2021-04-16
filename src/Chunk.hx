@@ -16,10 +16,22 @@ typedef ChunkData = {
 	var blocks:Array<Array<Array<Block>>>;
 	var vertices:Array<Vector3>;
 	var normals:Array<Vector3>;
+	var uvs:Array<Vector2>;
 };
+
+class Vector2 {
+	public var x:Float;
+	public var y:Float;
+
+	public function new(x:Float, y:Float) {
+		this.x = x;
+		this.y = y;
+	}
+}
 
 class Chunk extends Script<ChunkData> {
 	public var blockSize = 1;
+	public var textureSize = 128;
 	public var chunkSize = {x: 16, y: 16, z: 16};
 
 	override public function init(self:ChunkData):Void {
@@ -44,6 +56,7 @@ class Chunk extends Script<ChunkData> {
 		// clear the mesh
 		self.vertices = [];
 		self.normals = [];
+		self.uvs = [];
 
 		for (x in 0...chunkSize.x) {
 			for (y in 0...chunkSize.y) {
@@ -64,15 +77,17 @@ class Chunk extends Script<ChunkData> {
 
 		var buf = Buffer.create(self.vertices.length, untyped __lua__('{
 			{ name = hash("position"), type=buffer.VALUE_TYPE_FLOAT32, count = 3 },
-			{ name = hash("normal"), type=buffer.VALUE_TYPE_FLOAT32, count = 3 }
+			{ name = hash("normal"), type=buffer.VALUE_TYPE_FLOAT32, count = 3 },
+			{ name = hash("uv"), type=buffer.VALUE_TYPE_FLOAT32, count = 2 }
 		}'));
 		var pos = Buffer.get_stream(buf, "position");
 		var nor = Buffer.get_stream(buf, "normal");
+		var uv = Buffer.get_stream(buf, "uv");
 
-		pprint(self.vertices);
+		pprint(self.uvs);
 
 		var i = 1;
-		for (j in 1...self.vertices.length) {
+		for (j in 0...self.vertices.length) {
 			pos[i] = self.vertices[j].x;
 			pos[i + 1] = self.vertices[j].y;
 			pos[i + 2] = self.vertices[j].z;
@@ -82,11 +97,18 @@ class Chunk extends Script<ChunkData> {
 			i += 3;
 		}
 
+		var i = 1;
+		for (j in 0...self.uvs.length) {
+			uv[i] = self.uvs[j].x;
+			uv[i + 1] = self.uvs[j].y;
+			i += 2;
+		}
+
 		// for (j in 1...i) {
 		// 	pprint('${j}: ${pos[j]}');
 		// }
 
-		var res = Go.get("#mesh", "vertices");
+		var res:Hash = Go.get("#mesh", "vertices");
 		Resource.set_buffer(res, buf);
 	}
 
@@ -126,12 +148,18 @@ class Chunk extends Script<ChunkData> {
 		switch face {
 			case Top:
 				self.vertices.push(Vmath.vector3(p.x, p.y + blockSize, p.z));
+				self.uvs.push(new Vector2(281, 2971));
 				self.vertices.push(Vmath.vector3(p.x, p.y + blockSize, p.z + blockSize));
+				self.uvs.push(new Vector2(281, 2971 + textureSize));
 				self.vertices.push(Vmath.vector3(p.x + blockSize, p.y + blockSize, p.z + blockSize));
+				self.uvs.push(new Vector2(281 + textureSize, 2971 + textureSize));
 
 				self.vertices.push(Vmath.vector3(p.x, p.y + blockSize, p.z));
+				self.uvs.push(new Vector2(281, 2971));
 				self.vertices.push(Vmath.vector3(p.x + blockSize, p.y + blockSize, p.z + blockSize));
+				self.uvs.push(new Vector2(281 + textureSize, 2971 + textureSize));
 				self.vertices.push(Vmath.vector3(p.x + blockSize, p.y + blockSize, p.z));
+				self.uvs.push(new Vector2(281 + textureSize, 2971));
 
 				for (i in 0...6) {
 					self.normals.push(Vmath.vector3(0, 1, 0));

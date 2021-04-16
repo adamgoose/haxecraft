@@ -1,5 +1,5 @@
 material: "/assets/mesh.material"
 vertices: "/assets/empty.buffer"
-textures: "/assets/1x1_#00ff00ff.png"
+textures: "/assets/spritesheet.png"
 primitive_type: PRIMITIVE_TRIANGLES
 position_stream: "position"
