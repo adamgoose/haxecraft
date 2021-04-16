@@ -196,10 +196,13 @@ local Class = _hx_e();
 local Enum = _hx_e();
 
 local Array = _hx_e()
-local Vector2 = _hx_e()
 __defold_support_Script = _hx_e()
 local Chunk = _hx_e()
+local Vector2 = _hx_e()
 local Face = _hx_e()
+local Triangles = _hx_e()
+local Wool = _hx_e()
+local Normals = _hx_e()
 local Math = _hx_e()
 local String = _hx_e()
 local Std = _hx_e()
@@ -522,16 +525,6 @@ Array.prototype.resize = function(self,len)
   end;
 end
 
-Vector2.new = function(x,y) 
-  local self = _hx_new()
-  Vector2.super(self,x,y)
-  return self
-end
-Vector2.super = function(self,x,y) 
-  self.x = x;
-  self.y = y;
-end
-
 __defold_support_Script.new = function() 
   local self = _hx_new()
   __defold_support_Script.super(self)
@@ -570,7 +563,7 @@ Chunk.prototype.init = function(self,_self)
       local _g3 = self.chunkSize.z;
       while (_g2 < _g3) do 
         _g2 = _g2 + 1;
-        _g:push(_hx_o({__fields__={position=true,empty=true},position=_G.vmath.vector3(x, y, _g2 - 1),empty=false}));
+        _g:push(_hx_o({__fields__={position=true,empty=true},position=_G.vmath.vector3(x, y, _g2 - 1),empty=((_G.math.fmod(x, 2)) == 0) or ((_G.math.fmod(y, 2)) == 0)}));
       end;
       _g1:push(_g);
     end;
@@ -606,32 +599,32 @@ Chunk.prototype.updateChunk = function(self,_self)
         end;
         local face = Face.Top;
         if (self:neighborIsEmpty(_self, block.position, face)) then 
-          __haxe_Log.trace("block is empty", _hx_o({__fields__={fileName=true,lineNumber=true,className=true,methodName=true},fileName="src/Chunk.hx",lineNumber=70,className="Chunk",methodName="updateChunk"}));
+          __haxe_Log.trace("block is empty", _hx_o({__fields__={fileName=true,lineNumber=true,className=true,methodName=true},fileName="src/Chunk.hx",lineNumber=60,className="Chunk",methodName="updateChunk"}));
           self:addVertices(_self, block.position, face);
         end;
         local face = Face.Bottom;
         if (self:neighborIsEmpty(_self, block.position, face)) then 
-          __haxe_Log.trace("block is empty", _hx_o({__fields__={fileName=true,lineNumber=true,className=true,methodName=true},fileName="src/Chunk.hx",lineNumber=70,className="Chunk",methodName="updateChunk"}));
+          __haxe_Log.trace("block is empty", _hx_o({__fields__={fileName=true,lineNumber=true,className=true,methodName=true},fileName="src/Chunk.hx",lineNumber=60,className="Chunk",methodName="updateChunk"}));
           self:addVertices(_self, block.position, face);
         end;
         local face = Face.Left;
         if (self:neighborIsEmpty(_self, block.position, face)) then 
-          __haxe_Log.trace("block is empty", _hx_o({__fields__={fileName=true,lineNumber=true,className=true,methodName=true},fileName="src/Chunk.hx",lineNumber=70,className="Chunk",methodName="updateChunk"}));
+          __haxe_Log.trace("block is empty", _hx_o({__fields__={fileName=true,lineNumber=true,className=true,methodName=true},fileName="src/Chunk.hx",lineNumber=60,className="Chunk",methodName="updateChunk"}));
           self:addVertices(_self, block.position, face);
         end;
         local face = Face.Right;
         if (self:neighborIsEmpty(_self, block.position, face)) then 
-          __haxe_Log.trace("block is empty", _hx_o({__fields__={fileName=true,lineNumber=true,className=true,methodName=true},fileName="src/Chunk.hx",lineNumber=70,className="Chunk",methodName="updateChunk"}));
+          __haxe_Log.trace("block is empty", _hx_o({__fields__={fileName=true,lineNumber=true,className=true,methodName=true},fileName="src/Chunk.hx",lineNumber=60,className="Chunk",methodName="updateChunk"}));
           self:addVertices(_self, block.position, face);
         end;
         local face = Face.Far;
         if (self:neighborIsEmpty(_self, block.position, face)) then 
-          __haxe_Log.trace("block is empty", _hx_o({__fields__={fileName=true,lineNumber=true,className=true,methodName=true},fileName="src/Chunk.hx",lineNumber=70,className="Chunk",methodName="updateChunk"}));
+          __haxe_Log.trace("block is empty", _hx_o({__fields__={fileName=true,lineNumber=true,className=true,methodName=true},fileName="src/Chunk.hx",lineNumber=60,className="Chunk",methodName="updateChunk"}));
           self:addVertices(_self, block.position, face);
         end;
         local face = Face.Near;
         if (self:neighborIsEmpty(_self, block.position, face)) then 
-          __haxe_Log.trace("block is empty", _hx_o({__fields__={fileName=true,lineNumber=true,className=true,methodName=true},fileName="src/Chunk.hx",lineNumber=70,className="Chunk",methodName="updateChunk"}));
+          __haxe_Log.trace("block is empty", _hx_o({__fields__={fileName=true,lineNumber=true,className=true,methodName=true},fileName="src/Chunk.hx",lineNumber=60,className="Chunk",methodName="updateChunk"}));
           self:addVertices(_self, block.position, face);
         end;until true
         if _hx_continue_3 then 
@@ -645,12 +638,11 @@ Chunk.prototype.updateChunk = function(self,_self)
   local buf = _G.buffer.create(_self.vertices.length, {
 			{ name = hash("position"), type=buffer.VALUE_TYPE_FLOAT32, count = 3 },
 			{ name = hash("normal"), type=buffer.VALUE_TYPE_FLOAT32, count = 3 },
-			{ name = hash("uv"), type=buffer.VALUE_TYPE_FLOAT32, count = 2 }
+			{ name = hash("texcoord0"), type=buffer.VALUE_TYPE_FLOAT32, count = 2 }
 		});
   local pos = _G.buffer.get_stream(buf, "position");
   local nor = _G.buffer.get_stream(buf, "normal");
-  local uv = _G.buffer.get_stream(buf, "uv");
-  _G.pprint(_self.uvs);
+  local tex = _G.buffer.get_stream(buf, "texcoord0");
   local i = 1;
   local _g = 0;
   local _g1 = _self.vertices.length;
@@ -671,14 +663,15 @@ Chunk.prototype.updateChunk = function(self,_self)
   while (_g < _g1) do 
     _g = _g + 1;
     local j = _g - 1;
-    uv[i] = _self.uvs[j].x;
-    uv[i + 1] = _self.uvs[j].y;
+    tex[i] = _self.uvs[j].x;
+    tex[i + 1] = _self.uvs[j].y;
     i = i + 2;
   end;
   local res = _G.go.get("#mesh", "vertices");
   _G.resource.set_buffer(res, buf);
 end
-Chunk.prototype.neighborIsEmpty = function(self,_self,p,face) 
+Chunk.prototype.neighborIsEmpty = function(self,_self,position,face) 
+  local p = _G.vmath.vector3(position.x, position.y, position.z);
   local tmp = face[1];
   if (tmp) == 1 then 
     p.y = p.y + 1;
@@ -705,29 +698,68 @@ Chunk.prototype.neighborIsEmpty = function(self,_self,p,face)
   do return _self.blocks[p.x][p.y][p.z].empty end
 end
 Chunk.prototype.addVertices = function(self,_self,p,face) 
-  if (face[1] == 1) then 
-    _self.vertices:push(_G.vmath.vector3(p.x, p.y + self.blockSize, p.z));
-    _self.uvs:push(Vector2.new(0, 0));
-    _self.vertices:push(_G.vmath.vector3(p.x, p.y + self.blockSize, p.z + self.blockSize));
-    _self.uvs:push(Vector2.new(0, 1));
-    _self.vertices:push(_G.vmath.vector3(p.x + self.blockSize, p.y + self.blockSize, p.z + self.blockSize));
-    _self.uvs:push(Vector2.new(1, 1));
-    _self.vertices:push(_G.vmath.vector3(p.x, p.y + self.blockSize, p.z));
-    _self.uvs:push(Vector2.new(0, 0));
-    _self.vertices:push(_G.vmath.vector3(p.x + self.blockSize, p.y + self.blockSize, p.z + self.blockSize));
-    _self.uvs:push(Vector2.new(1, 1));
-    _self.vertices:push(_G.vmath.vector3(p.x + self.blockSize, p.y + self.blockSize, p.z));
-    _self.uvs:push(Vector2.new(1, 0));
-    _self.normals:push(_G.vmath.vector3(0, 1, 0));
-    _self.normals:push(_G.vmath.vector3(0, 1, 0));
-    _self.normals:push(_G.vmath.vector3(0, 1, 0));
-    _self.normals:push(_G.vmath.vector3(0, 1, 0));
-    _self.normals:push(_G.vmath.vector3(0, 1, 0));
-    _self.normals:push(_G.vmath.vector3(0, 1, 0));
+  local tri = _hx_tab_array({}, 0);
+  local nor = _hx_tab_array({}, 0);
+  local tex = _hx_tab_array({}, 0);
+  local tmp = face[1];
+  if (tmp) == 1 then 
+    tri = Triangles.Top;
+    nor = Normals.Top;
+    tex = Wool.White;
+  elseif (tmp) == 2 then 
+    tri = Triangles.Bottom;
+    nor = Normals.Bottom;
+    tex = Wool.White;
+  elseif (tmp) == 3 then 
+    tri = Triangles.Left;
+    nor = Normals.Left;
+    tex = Wool.White;
+  elseif (tmp) == 4 then 
+    tri = Triangles.Right;
+    nor = Normals.Right;
+    tex = Wool.White;
+  elseif (tmp) == 5 then 
+    tri = Triangles.Far;
+    nor = Normals.Far;
+    tex = Wool.White;
+  elseif (tmp) == 6 then 
+    tri = Triangles.Near;
+    nor = Normals.Near;
+    tex = Wool.White;else end;
+  local _g = 0;
+  while (_g < tri.length) do 
+    local v = tri[_g];
+    _g = _g + 1;
+    local _self = _self.vertices;
+    local b = self.blockSize;
+    local b = (v) * (b);
+    _self:push((p) + (b));
+  end;
+  local _g = 0;
+  while (_g < nor.length) do 
+    local v = nor[_g];
+    _g = _g + 1;
+    _self.normals:push(v);
+  end;
+  local _g = 0;
+  while (_g < tex.length) do 
+    local v = tex[_g];
+    _g = _g + 1;
+    _self.uvs:push(v);
   end;
 end
 Chunk.__super__ = __defold_support_Script
 setmetatable(Chunk.prototype,{__index=__defold_support_Script.prototype})
+
+Vector2.new = function(x,y) 
+  local self = _hx_new()
+  Vector2.super(self,x,y)
+  return self
+end
+Vector2.super = function(self,x,y) 
+  self.x = x;
+  self.y = y;
+end
 
 Face.All = _hx_tab_array({[0]="All",0,__enum__ = Face},2)
 
@@ -743,6 +775,12 @@ Face.Far = _hx_tab_array({[0]="Far",5,__enum__ = Face},2)
 
 Face.Near = _hx_tab_array({[0]="Near",6,__enum__ = Face},2)
 
+
+Triangles.new = {}
+
+Wool.new = {}
+
+Normals.new = {}
 
 Math.new = {}
 Math.isNaN = function(f) 
@@ -1046,7 +1084,117 @@ _hx_array_mt.__index = Array.prototype
 local _hx_static_init = function()
   
   _hxdefold_ = _hxdefold_ or {}
-  __defold_support_Init.init(_hxdefold_);
+  __defold_support_Init.init(_hxdefold_);Triangles.Top = _hx_tab_array({[0]=_G.vmath.vector3(0, 1, 0), _G.vmath.vector3(0, 1, 1), _G.vmath.vector3(1, 1, 1), _G.vmath.vector3(0, 1, 0), _G.vmath.vector3(1, 1, 1), _G.vmath.vector3(1, 1, 0)}, 6);
+  
+  Triangles.Bottom = _hx_tab_array({[0]=_G.vmath.vector3(0, 0, 0), _G.vmath.vector3(1, 0, 1), _G.vmath.vector3(0, 0, 1), _G.vmath.vector3(0, 0, 0), _G.vmath.vector3(1, 0, 0), _G.vmath.vector3(1, 0, 1)}, 6);
+  
+  Triangles.Left = _hx_tab_array({[0]=_G.vmath.vector3(0, 0, 0), _G.vmath.vector3(0, 0, 1), _G.vmath.vector3(0, 1, 1), _G.vmath.vector3(0, 0, 0), _G.vmath.vector3(0, 1, 1), _G.vmath.vector3(0, 1, 0)}, 6);
+  
+  Triangles.Right = _hx_tab_array({[0]=_G.vmath.vector3(1, 0, 0), _G.vmath.vector3(1, 1, 0), _G.vmath.vector3(1, 1, 1), _G.vmath.vector3(1, 0, 0), _G.vmath.vector3(1, 1, 1), _G.vmath.vector3(1, 0, 1)}, 6);
+  
+  Triangles.Near = _hx_tab_array({[0]=_G.vmath.vector3(0, 0, 1), _G.vmath.vector3(1, 0, 1), _G.vmath.vector3(1, 1, 1), _G.vmath.vector3(0, 0, 1), _G.vmath.vector3(1, 1, 1), _G.vmath.vector3(0, 1, 1)}, 6);
+  
+  Triangles.Far = _hx_tab_array({[0]=_G.vmath.vector3(0, 0, 0), _G.vmath.vector3(0, 1, 0), _G.vmath.vector3(1, 1, 0), _G.vmath.vector3(0, 0, 0), _G.vmath.vector3(1, 1, 0), _G.vmath.vector3(1, 0, 0)}, 6);
+  
+  Wool.White = _hx_tab_array({[0]=Vector2.new(0, 0), Vector2.new(0, 0.25), Vector2.new(0.25, 0.25), Vector2.new(0, 0), Vector2.new(0.25, 0.25), Vector2.new(0.25, 0)}, 6);
+  
+  Normals.Top = (function() 
+    local _hx_1
+    
+    local _g = _hx_tab_array({}, 0);
+    
+    _g:push(_G.vmath.vector3(0, 1, 0));
+    _g:push(_G.vmath.vector3(0, 1, 0));
+    _g:push(_G.vmath.vector3(0, 1, 0));
+    _g:push(_G.vmath.vector3(0, 1, 0));
+    _g:push(_G.vmath.vector3(0, 1, 0));
+    _g:push(_G.vmath.vector3(0, 1, 0));
+    
+    _hx_1 = _g;
+    return _hx_1
+  end )();
+  
+  Normals.Bottom = (function() 
+    local _hx_2
+    
+    local _g = _hx_tab_array({}, 0);
+    
+    _g:push(_G.vmath.vector3(0, -1, 0));
+    _g:push(_G.vmath.vector3(0, -1, 0));
+    _g:push(_G.vmath.vector3(0, -1, 0));
+    _g:push(_G.vmath.vector3(0, -1, 0));
+    _g:push(_G.vmath.vector3(0, -1, 0));
+    _g:push(_G.vmath.vector3(0, -1, 0));
+    
+    _hx_2 = _g;
+    return _hx_2
+  end )();
+  
+  Normals.Left = (function() 
+    local _hx_3
+    
+    local _g = _hx_tab_array({}, 0);
+    
+    _g:push(_G.vmath.vector3(-1, 0, 0));
+    _g:push(_G.vmath.vector3(-1, 0, 0));
+    _g:push(_G.vmath.vector3(-1, 0, 0));
+    _g:push(_G.vmath.vector3(-1, 0, 0));
+    _g:push(_G.vmath.vector3(-1, 0, 0));
+    _g:push(_G.vmath.vector3(-1, 0, 0));
+    
+    _hx_3 = _g;
+    return _hx_3
+  end )();
+  
+  Normals.Right = (function() 
+    local _hx_4
+    
+    local _g = _hx_tab_array({}, 0);
+    
+    _g:push(_G.vmath.vector3(1, 0, 0));
+    _g:push(_G.vmath.vector3(1, 0, 0));
+    _g:push(_G.vmath.vector3(1, 0, 0));
+    _g:push(_G.vmath.vector3(1, 0, 0));
+    _g:push(_G.vmath.vector3(1, 0, 0));
+    _g:push(_G.vmath.vector3(1, 0, 0));
+    
+    _hx_4 = _g;
+    return _hx_4
+  end )();
+  
+  Normals.Near = (function() 
+    local _hx_5
+    
+    local _g = _hx_tab_array({}, 0);
+    
+    _g:push(_G.vmath.vector3(0, 0, -1));
+    _g:push(_G.vmath.vector3(0, 0, -1));
+    _g:push(_G.vmath.vector3(0, 0, -1));
+    _g:push(_G.vmath.vector3(0, 0, -1));
+    _g:push(_G.vmath.vector3(0, 0, -1));
+    _g:push(_G.vmath.vector3(0, 0, -1));
+    
+    _hx_5 = _g;
+    return _hx_5
+  end )();
+  
+  Normals.Far = (function() 
+    local _hx_6
+    
+    local _g = _hx_tab_array({}, 0);
+    
+    _g:push(_G.vmath.vector3(0, 0, 1));
+    _g:push(_G.vmath.vector3(0, 0, 1));
+    _g:push(_G.vmath.vector3(0, 0, 1));
+    _g:push(_G.vmath.vector3(0, 0, 1));
+    _g:push(_G.vmath.vector3(0, 0, 1));
+    _g:push(_G.vmath.vector3(0, 0, 1));
+    
+    _hx_6 = _g;
+    return _hx_6
+  end )();
+  
+  
 end
 
 _hx_print = print or (function() end)

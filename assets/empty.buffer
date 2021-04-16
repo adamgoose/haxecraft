@@ -12,7 +12,7 @@
     "data": []
   },
   {
-    "name": "uv",
+    "name": "texcoord0",
     "type": "float32",
     "count": 2,
     "data": []
