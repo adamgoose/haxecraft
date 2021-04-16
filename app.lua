@@ -198,7 +198,7 @@ local Enum = _hx_e();
 local Array = _hx_e()
 __defold_support_Script = _hx_e()
 local Chunk = _hx_e()
-local Vector2 = _hx_e()
+local Vector2Data = _hx_e()
 local Face = _hx_e()
 local Triangles = _hx_e()
 local Wool = _hx_e()
@@ -700,32 +700,32 @@ end
 Chunk.prototype.addVertices = function(self,_self,p,face) 
   local tri = _hx_tab_array({}, 0);
   local nor = _hx_tab_array({}, 0);
-  local tex = _hx_tab_array({}, 0);
+  local tex = nil;
   local tmp = face[1];
   if (tmp) == 1 then 
     tri = Triangles.Top;
     nor = Normals.Top;
-    tex = Wool.White;
+    tex = Wool.LightGreen;
   elseif (tmp) == 2 then 
     tri = Triangles.Bottom;
     nor = Normals.Bottom;
-    tex = Wool.White;
+    tex = Wool.Brown;
   elseif (tmp) == 3 then 
     tri = Triangles.Left;
     nor = Normals.Left;
-    tex = Wool.White;
+    tex = Wool.Brown;
   elseif (tmp) == 4 then 
     tri = Triangles.Right;
     nor = Normals.Right;
-    tex = Wool.White;
+    tex = Wool.Brown;
   elseif (tmp) == 5 then 
     tri = Triangles.Far;
     nor = Normals.Far;
-    tex = Wool.White;
+    tex = Wool.Brown;
   elseif (tmp) == 6 then 
     tri = Triangles.Near;
     nor = Normals.Near;
-    tex = Wool.White;else end;
+    tex = Wool.Brown;else end;
   local _g = 0;
   while (_g < tri.length) do 
     local v = tri[_g];
@@ -742,21 +742,22 @@ Chunk.prototype.addVertices = function(self,_self,p,face)
     _self.normals:push(v);
   end;
   local _g = 0;
-  while (_g < tex.length) do 
-    local v = tex[_g];
+  local _g1 = Wool.Shape;
+  while (_g < _g1.length) do 
+    local v = _g1[_g];
     _g = _g + 1;
-    _self.uvs:push(v);
+    _self.uvs:push(Vector2Data.new(v.x + tex.x, v.y + tex.y));
   end;
 end
 Chunk.__super__ = __defold_support_Script
 setmetatable(Chunk.prototype,{__index=__defold_support_Script.prototype})
 
-Vector2.new = function(x,y) 
+Vector2Data.new = function(x,y) 
   local self = _hx_new()
-  Vector2.super(self,x,y)
+  Vector2Data.super(self,x,y)
   return self
 end
-Vector2.super = function(self,x,y) 
+Vector2Data.super = function(self,x,y) 
   self.x = x;
   self.y = y;
 end
@@ -1096,7 +1097,11 @@ local _hx_static_init = function()
   
   Triangles.Far = _hx_tab_array({[0]=_G.vmath.vector3(0, 0, 0), _G.vmath.vector3(0, 1, 0), _G.vmath.vector3(1, 1, 0), _G.vmath.vector3(0, 0, 0), _G.vmath.vector3(1, 1, 0), _G.vmath.vector3(1, 0, 0)}, 6);
   
-  Wool.White = _hx_tab_array({[0]=Vector2.new(0, 0), Vector2.new(0, 0.25), Vector2.new(0.25, 0.25), Vector2.new(0, 0), Vector2.new(0.25, 0.25), Vector2.new(0.25, 0)}, 6);
+  Wool.LightGreen = Vector2Data.new(0, 0.25);
+  
+  Wool.Brown = Vector2Data.new(0, 0.5);
+  
+  Wool.Shape = _hx_tab_array({[0]=Vector2Data.new(0, 0), Vector2Data.new(0, 0.25), Vector2Data.new(0.25, 0.25), Vector2Data.new(0, 0), Vector2Data.new(0.25, 0.25), Vector2Data.new(0.25, 0)}, 6);
   
   Normals.Top = (function() 
     local _hx_1

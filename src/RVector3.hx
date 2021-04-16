@@ -11,6 +11,11 @@ extern class RVmath {
 **/
 @:forward
 extern abstract RVector3(RVector3Data) {
+	@:to
+	public inline function toVector3():Vector3 {
+		return Vmath.vector3(this.x, this.y, this.z);
+	}
+
 	@:op(a + b)
 	private static inline function add(a:RVector3, b:RVector3):RVector3 {
 		return untyped __lua__("({0}) + ({1})", a, b);

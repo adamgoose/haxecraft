@@ -133,32 +133,32 @@ class Chunk extends Script<ChunkData> {
 	function addVertices(self:ChunkData, p:RVector3, face:Face):Void {
 		var tri = [];
 		var nor = [];
-		var tex = [];
+		var tex = null;
 		switch face {
 			case Top:
 				tri = Triangles.Top;
 				nor = Normals.Top;
-				tex = Wool.White;
+				tex = Wool.LightGreen;
 			case Bottom:
 				tri = Triangles.Bottom;
 				nor = Normals.Bottom;
-				tex = Wool.White;
+				tex = Wool.Brown;
 			case Left:
 				tri = Triangles.Left;
 				nor = Normals.Left;
-				tex = Wool.White;
+				tex = Wool.Brown;
 			case Right:
 				tri = Triangles.Right;
 				nor = Normals.Right;
-				tex = Wool.White;
+				tex = Wool.Brown;
 			case Near:
 				tri = Triangles.Near;
 				nor = Normals.Near;
-				tex = Wool.White;
+				tex = Wool.Brown;
 			case Far:
 				tri = Triangles.Far;
 				nor = Normals.Far;
-				tex = Wool.White;
+				tex = Wool.Brown;
 			default:
 		}
 
@@ -168,8 +168,8 @@ class Chunk extends Script<ChunkData> {
 		for (v in nor) {
 			self.normals.push(v);
 		}
-		for (v in tex) {
-			self.uvs.push(v);
+		for (v in Wool.Shape) {
+			self.uvs.push(v + tex);
 		}
 	}
 }
