@@ -210,7 +210,6 @@ local Std = _hx_e()
 local World = _hx_e()
 __defold_GoMessages = _hx_e()
 __defold_support_Init = _hx_e()
-__haxe_Log = _hx_e()
 __haxe_iterators_ArrayIterator = _hx_e()
 __haxe_iterators_ArrayKeyValueIterator = _hx_e()
 __hxnoise_Perlin = _hx_e()
@@ -543,7 +542,7 @@ Chunk.new = function()
   return self
 end
 Chunk.super = function(self) 
-  self.chunkSize = _hx_o({__fields__={x=true,y=true,z=true},x=16,y=16,z=16});
+  self.chunkSize = _hx_o({__fields__={x=true,y=true,z=true},x=32,y=32,z=32});
   self.blockSize = 1;
   __defold_support_Script.super(self);
 end
@@ -585,10 +584,7 @@ Chunk.prototype.init = function(self,_self)
     while (_g < _g1) do 
       _g = _g + 1;
       local z = _g - 1;
-      local dx = _self.position.x + x;
-      local dz = _self.position.z + z;
-      local p = perlin:perlin(dx * 0.0625, 0.3, dz * 0.0625);
-      __haxe_Log.trace(x, _hx_o({__fields__={fileName=true,lineNumber=true,className=true,methodName=true,customParams=true},fileName="src/Chunk.hx",lineNumber=49,className="Chunk",methodName="init",customParams=_hx_tab_array({[0]=z, dx, dz, p}, 4)}));
+      local p = perlin:perlin((_self.position.x + x) * 0.03125, 0.4, (_self.position.z + z) * 0.03125);
       local _g = 0;
       local _g1 = self.chunkSize.y;
       while (_g < _g1) do 
@@ -833,7 +829,7 @@ Mover.new = function()
   return self
 end
 Mover.super = function(self) 
-  self.speed = 5;
+  self.speed = 10;
   __defold_support_Script.super(self);
 end
 Mover.prototype = _hx_e();
@@ -841,6 +837,7 @@ Mover.prototype.init = function(self,_self)
   _G.msg.post(".", __defold_GoMessages.acquire_input_focus);
   _self.oPos = _G.go.get_position();
   _self.speed = _G.vmath.vector3();
+  _self.aim = _G.vmath.quat();
 end
 Mover.prototype.update = function(self,_self,dt) 
   local p = _G.go.get_position();
@@ -849,6 +846,11 @@ Mover.prototype.update = function(self,_self,dt)
   p = (p) + (b);
   _G.go.set_position(p);
   _self.speed = _G.vmath.vector3();
+  local a = _G.go.get_rotation();
+  local b = _self.aim;
+  a = (a) * (b);
+  _G.go.set_rotation(a);
+  _self.aim = _G.vmath.quat();
 end
 Mover.prototype.on_input = function(self,_self,action_id,action) 
   if (action_id == _G.hash("w")) then 
@@ -877,6 +879,10 @@ Mover.prototype.on_input = function(self,_self,action_id,action)
             else
               if (action_id == _G.hash("esc")) then 
                 _G.go.set_position(_self.oPos);
+              else
+                local a = _self.aim;
+                local b = _G.vmath.quat_rotation_x(action.dy / 100);
+                _self.aim = (a) * (b);
               end;
             end;
           end;
@@ -1084,17 +1090,10 @@ World.new = function()
   return self
 end
 World.super = function(self) 
-  self.chunkSize = _G.vmath.vector3(16, 16, 16);
   __defold_support_Script.super(self);
 end
 World.prototype = _hx_e();
 World.prototype.init = function(self,_self) 
-  local this1 = _G.vmath.vector3(0 * self.chunkSize.x, 0, 0 * self.chunkSize.z);
-  _G.factory.create("#chunkFactory", _G.vmath.vector3(this1.x, this1.y, this1.z));
-  local this1 = _G.vmath.vector3(self.chunkSize.x, 0, 0 * self.chunkSize.z);
-  _G.factory.create("#chunkFactory", _G.vmath.vector3(this1.x, this1.y, this1.z));
-  local this1 = _G.vmath.vector3(2 * self.chunkSize.x, 0, 0 * self.chunkSize.z);
-  _G.factory.create("#chunkFactory", _G.vmath.vector3(this1.x, this1.y, this1.z));
 end
 World.prototype.update = function(self,_self,dt) 
 end
@@ -1132,29 +1131,6 @@ __defold_support_Init.init = function(exports)
   exports.Mover_on_input = function(_self,action_id,action) 
     do return script:on_input(_self, action_id, action) end;
   end;
-end
-
-__haxe_Log.new = {}
-__haxe_Log.formatOutput = function(v,infos) 
-  local str = Std.string(v);
-  if (infos == nil) then 
-    do return str end;
-  end;
-  local pstr = Std.string(Std.string(infos.fileName) .. Std.string(":")) .. Std.string(infos.lineNumber);
-  if (infos.customParams ~= nil) then 
-    local _g = 0;
-    local _g1 = infos.customParams;
-    while (_g < _g1.length) do 
-      local v = _g1[_g];
-      _g = _g + 1;
-      str = Std.string(str) .. Std.string((Std.string(", ") .. Std.string(Std.string(v))));
-    end;
-  end;
-  do return Std.string(Std.string(pstr) .. Std.string(": ")) .. Std.string(str) end;
-end
-__haxe_Log.trace = function(v,infos) 
-  local str = __haxe_Log.formatOutput(v, infos);
-  _hx_print(str);
 end
 
 __haxe_iterators_ArrayIterator.new = function(array) 
@@ -1455,7 +1431,5 @@ local _hx_static_init = function()
   
   
 end
-
-_hx_print = print or (function() end)
 
 _hx_static_init();

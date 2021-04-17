@@ -20,11 +20,11 @@ typedef ChunkData = {
 
 class Chunk extends Script<ChunkData> {
 	public var blockSize = 1;
-	public var chunkSize = {x: 16, y: 16, z: 16};
+	public var chunkSize = {x: 32, y: 32, z: 32};
 
 	override public function init(self:ChunkData):Void {
 		var perlin = new Perlin();
-		var scale = 1 / 16;
+		var scale = 1 / 32;
 
 		self.position = RVmath.vector3(Go.get_position());
 
@@ -45,8 +45,7 @@ class Chunk extends Script<ChunkData> {
 			for (z in 0...chunkSize.z) {
 				var dx = (self.position.x + x);
 				var dz = (self.position.z + z);
-				var p = perlin.perlin(dx * scale, 0.3, dz * scale);
-				trace(x, z, dx, dz, p);
+				var p = perlin.perlin(dx * scale, 0.4, dz * scale);
 
 				for (y in 0...chunkSize.y) {
 					if (y / chunkSize.y >= p)
@@ -56,8 +55,6 @@ class Chunk extends Script<ChunkData> {
 				}
 			}
 		}
-
-		// pprint(self.blocks);
 
 		Go.set("#mesh", "light", Vmath.vector4(0, 64, 0, 0));
 		updateChunk(self);
