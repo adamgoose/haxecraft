@@ -204,12 +204,16 @@ local Triangles = _hx_e()
 local Wool = _hx_e()
 local Normals = _hx_e()
 local Math = _hx_e()
+local Mover = _hx_e()
 local String = _hx_e()
 local Std = _hx_e()
+local World = _hx_e()
+__defold_GoMessages = _hx_e()
 __defold_support_Init = _hx_e()
 __haxe_Log = _hx_e()
 __haxe_iterators_ArrayIterator = _hx_e()
 __haxe_iterators_ArrayKeyValueIterator = _hx_e()
+__hxnoise_Perlin = _hx_e()
 
 local _hx_bind, _hx_bit, _hx_staticToInstance, _hx_funcToField, _hx_maxn, _hx_print, _hx_apply_self, _hx_box_mr, _hx_bit_clamp, _hx_table, _hx_bit_raw
 local _hx_pcall_default = {};
@@ -545,7 +549,8 @@ Chunk.super = function(self)
 end
 Chunk.prototype = _hx_e();
 Chunk.prototype.init = function(self,_self) 
-  _self.position = _G.vmath.vector3(_G.go.get_position("."));
+  local perlin = __hxnoise_Perlin.new();
+  _self.position = _G.vmath.vector3(_G.go.get_position());
   local _g = _hx_tab_array({}, 0);
   local _g1 = 0;
   local _g2 = self.chunkSize.x;
@@ -563,13 +568,39 @@ Chunk.prototype.init = function(self,_self)
       local _g3 = self.chunkSize.z;
       while (_g2 < _g3) do 
         _g2 = _g2 + 1;
-        _g:push(_hx_o({__fields__={position=true,empty=true},position=_G.vmath.vector3(x, y, _g2 - 1),empty=((_G.math.fmod(x, 2)) == 0) or ((_G.math.fmod(y, 2)) == 0)}));
+        _g:push(_hx_o({__fields__={position=true,empty=true},position=_G.vmath.vector3(x, y, _g2 - 1),empty=true}));
       end;
       _g1:push(_g);
     end;
     _g:push(_g1);
   end;
   _self.blocks = _g;
+  local _g = 0;
+  local _g1 = self.chunkSize.x;
+  while (_g < _g1) do 
+    _g = _g + 1;
+    local x = _g - 1;
+    local _g = 0;
+    local _g1 = self.chunkSize.z;
+    while (_g < _g1) do 
+      _g = _g + 1;
+      local z = _g - 1;
+      local dx = _self.position.x + x;
+      local dz = _self.position.z + z;
+      local p = perlin:perlin(dx * 0.0625, 0.3, dz * 0.0625);
+      __haxe_Log.trace(x, _hx_o({__fields__={fileName=true,lineNumber=true,className=true,methodName=true,customParams=true},fileName="src/Chunk.hx",lineNumber=49,className="Chunk",methodName="init",customParams=_hx_tab_array({[0]=z, dx, dz, p}, 4)}));
+      local _g = 0;
+      local _g1 = self.chunkSize.y;
+      while (_g < _g1) do 
+        _g = _g + 1;
+        local y = _g - 1;
+        if ((y / self.chunkSize.y) >= p) then 
+          break;
+        end;
+        _self.blocks[x][y][z].empty = false;
+      end;
+    end;
+  end;
   _G.go.set("#mesh", "light", _G.vmath.vector4(0, 64, 0, 0));
   self:updateChunk(_self);
 end
@@ -599,32 +630,26 @@ Chunk.prototype.updateChunk = function(self,_self)
         end;
         local face = Face.Top;
         if (self:neighborIsEmpty(_self, block.position, face)) then 
-          __haxe_Log.trace("block is empty", _hx_o({__fields__={fileName=true,lineNumber=true,className=true,methodName=true},fileName="src/Chunk.hx",lineNumber=60,className="Chunk",methodName="updateChunk"}));
           self:addVertices(_self, block.position, face);
         end;
         local face = Face.Bottom;
         if (self:neighborIsEmpty(_self, block.position, face)) then 
-          __haxe_Log.trace("block is empty", _hx_o({__fields__={fileName=true,lineNumber=true,className=true,methodName=true},fileName="src/Chunk.hx",lineNumber=60,className="Chunk",methodName="updateChunk"}));
           self:addVertices(_self, block.position, face);
         end;
         local face = Face.Left;
         if (self:neighborIsEmpty(_self, block.position, face)) then 
-          __haxe_Log.trace("block is empty", _hx_o({__fields__={fileName=true,lineNumber=true,className=true,methodName=true},fileName="src/Chunk.hx",lineNumber=60,className="Chunk",methodName="updateChunk"}));
           self:addVertices(_self, block.position, face);
         end;
         local face = Face.Right;
         if (self:neighborIsEmpty(_self, block.position, face)) then 
-          __haxe_Log.trace("block is empty", _hx_o({__fields__={fileName=true,lineNumber=true,className=true,methodName=true},fileName="src/Chunk.hx",lineNumber=60,className="Chunk",methodName="updateChunk"}));
           self:addVertices(_self, block.position, face);
         end;
         local face = Face.Far;
         if (self:neighborIsEmpty(_self, block.position, face)) then 
-          __haxe_Log.trace("block is empty", _hx_o({__fields__={fileName=true,lineNumber=true,className=true,methodName=true},fileName="src/Chunk.hx",lineNumber=60,className="Chunk",methodName="updateChunk"}));
           self:addVertices(_self, block.position, face);
         end;
         local face = Face.Near;
         if (self:neighborIsEmpty(_self, block.position, face)) then 
-          __haxe_Log.trace("block is empty", _hx_o({__fields__={fileName=true,lineNumber=true,className=true,methodName=true},fileName="src/Chunk.hx",lineNumber=60,className="Chunk",methodName="updateChunk"}));
           self:addVertices(_self, block.position, face);
         end;until true
         if _hx_continue_3 then 
@@ -636,10 +661,10 @@ Chunk.prototype.updateChunk = function(self,_self)
     end;
   end;
   local buf = _G.buffer.create(_self.vertices.length, {
-			{ name = hash("position"), type=buffer.VALUE_TYPE_FLOAT32, count = 3 },
-			{ name = hash("normal"), type=buffer.VALUE_TYPE_FLOAT32, count = 3 },
-			{ name = hash("texcoord0"), type=buffer.VALUE_TYPE_FLOAT32, count = 2 }
-		});
+      { name = hash("position"), type=buffer.VALUE_TYPE_FLOAT32, count = 3 },
+      { name = hash("normal"), type=buffer.VALUE_TYPE_FLOAT32, count = 3 },
+      { name = hash("texcoord0"), type=buffer.VALUE_TYPE_FLOAT32, count = 2 }
+    });
   local pos = _G.buffer.get_stream(buf, "position");
   local nor = _G.buffer.get_stream(buf, "normal");
   local tex = _G.buffer.get_stream(buf, "texcoord0");
@@ -687,13 +712,13 @@ Chunk.prototype.neighborIsEmpty = function(self,_self,position,face)
     p.z = p.z + 1;else
   do return true end; end;
   if ((p.x < 0) or (p.x >= self.chunkSize.x)) then 
-    do return true end;
+    do return false end;
   end;
   if ((p.y < 0) or (p.y >= self.chunkSize.y)) then 
-    do return true end;
+    do return false end;
   end;
   if ((p.z < 0) or (p.z >= self.chunkSize.z)) then 
-    do return true end;
+    do return false end;
   end;
   do return _self.blocks[p.x][p.y][p.z].empty end
 end
@@ -705,7 +730,7 @@ Chunk.prototype.addVertices = function(self,_self,p,face)
   if (tmp) == 1 then 
     tri = Triangles.Top;
     nor = Normals.Top;
-    tex = Wool.LightGreen;
+    tex = Wool.Green;
   elseif (tmp) == 2 then 
     tri = Triangles.Bottom;
     nor = Normals.Bottom;
@@ -801,6 +826,68 @@ Math.min = function(a,b)
     do return _G.math.min(a, b) end;
   end;
 end
+
+Mover.new = function() 
+  local self = _hx_new(Mover.prototype)
+  Mover.super(self)
+  return self
+end
+Mover.super = function(self) 
+  self.speed = 5;
+  __defold_support_Script.super(self);
+end
+Mover.prototype = _hx_e();
+Mover.prototype.init = function(self,_self) 
+  _G.msg.post(".", __defold_GoMessages.acquire_input_focus);
+  _self.oPos = _G.go.get_position();
+  _self.speed = _G.vmath.vector3();
+end
+Mover.prototype.update = function(self,_self,dt) 
+  local p = _G.go.get_position();
+  local a = _self.speed;
+  local b = (a) * (dt);
+  p = (p) + (b);
+  _G.go.set_position(p);
+  _self.speed = _G.vmath.vector3();
+end
+Mover.prototype.on_input = function(self,_self,action_id,action) 
+  if (action_id == _G.hash("w")) then 
+    local fh = _self.speed;
+    fh.z = fh.z - self.speed;
+  else
+    if (action_id == _G.hash("a")) then 
+      local fh = _self.speed;
+      fh.x = fh.x - self.speed;
+    else
+      if (action_id == _G.hash("s")) then 
+        local fh = _self.speed;
+        fh.z = fh.z + self.speed;
+      else
+        if (action_id == _G.hash("d")) then 
+          local fh = _self.speed;
+          fh.x = fh.x + self.speed;
+        else
+          if (action_id == _G.hash("space")) then 
+            local fh = _self.speed;
+            fh.y = fh.y + self.speed;
+          else
+            if (action_id == _G.hash("shift")) then 
+              local fh = _self.speed;
+              fh.y = fh.y - self.speed;
+            else
+              if (action_id == _G.hash("esc")) then 
+                _G.go.set_position(_self.oPos);
+              end;
+            end;
+          end;
+        end;
+      end;
+    end;
+  end;
+  do return false end
+end
+Mover.__super__ = __defold_support_Script
+setmetatable(Mover.prototype,{__index=__defold_support_Script.prototype})
 
 String.new = function(string) 
   local self = _hx_new(String.prototype)
@@ -991,11 +1078,59 @@ Std.int = function(x)
   end;
 end
 
+World.new = function() 
+  local self = _hx_new(World.prototype)
+  World.super(self)
+  return self
+end
+World.super = function(self) 
+  self.chunkSize = _G.vmath.vector3(16, 16, 16);
+  __defold_support_Script.super(self);
+end
+World.prototype = _hx_e();
+World.prototype.init = function(self,_self) 
+  local this1 = _G.vmath.vector3(0 * self.chunkSize.x, 0, 0 * self.chunkSize.z);
+  _G.factory.create("#chunkFactory", _G.vmath.vector3(this1.x, this1.y, this1.z));
+  local this1 = _G.vmath.vector3(self.chunkSize.x, 0, 0 * self.chunkSize.z);
+  _G.factory.create("#chunkFactory", _G.vmath.vector3(this1.x, this1.y, this1.z));
+  local this1 = _G.vmath.vector3(2 * self.chunkSize.x, 0, 0 * self.chunkSize.z);
+  _G.factory.create("#chunkFactory", _G.vmath.vector3(this1.x, this1.y, this1.z));
+end
+World.prototype.update = function(self,_self,dt) 
+end
+World.prototype.on_input = function(self,_self,action_id,action) 
+  do return false end
+end
+World.__super__ = __defold_support_Script
+setmetatable(World.prototype,{__index=__defold_support_Script.prototype})
+
+__defold_GoMessages.new = {}
+
 __defold_support_Init.new = {}
 __defold_support_Init.init = function(exports) 
+  local script = World.new();
+  exports.World_init = function(_self) 
+    script:init(_self);
+  end;
+  exports.World_update = function(_self,dt) 
+    script:update(_self, dt);
+  end;
+  exports.World_on_input = function(_self,action_id,action) 
+    do return script:on_input(_self, action_id, action) end;
+  end;
   local script = Chunk.new();
   exports.Chunk_init = function(_self) 
     script:init(_self);
+  end;
+  local script = Mover.new();
+  exports.Mover_init = function(_self) 
+    script:init(_self);
+  end;
+  exports.Mover_update = function(_self,dt) 
+    script:update(_self, dt);
+  end;
+  exports.Mover_on_input = function(_self,action_id,action) 
+    do return script:on_input(_self, action_id, action) end;
   end;
 end
 
@@ -1053,6 +1188,121 @@ end
 __haxe_iterators_ArrayKeyValueIterator.super = function(self,array) 
   self.array = array;
 end
+
+__hxnoise_Perlin.new = function(_repeat) 
+  local self = _hx_new(__hxnoise_Perlin.prototype)
+  __hxnoise_Perlin.super(self,_repeat)
+  return self
+end
+__hxnoise_Perlin.super = function(self,_repeat) 
+  if (_repeat == nil) then 
+    _repeat = -1;
+  end;
+  self["repeat"] = _repeat;
+  if (__hxnoise_Perlin.P == nil) then 
+    local _g = _hx_tab_array({}, 0);
+    local _g1 = 0;
+    while (_g1 < 512) do 
+      _g1 = _g1 + 1;
+      _g:push(__hxnoise_Perlin.PERMUTATIONS[_G.math.fmod((_g1 - 1), 256)]);
+    end;
+    __hxnoise_Perlin.P = _g;
+  end;
+end
+__hxnoise_Perlin.grad = function(hash,x,y,z) 
+  local h = _hx_bit.band(hash,15);
+  local u = (function() 
+    local _hx_1
+    if (h < 8) then 
+    _hx_1 = x; else 
+    _hx_1 = y; end
+    return _hx_1
+  end )();
+  local v;
+  if (h < 4) then 
+    v = y;
+  else
+    if ((h == 12) or (h == 14)) then 
+      v = x;
+    else
+      v = z;
+    end;
+  end;
+  do return (function() 
+    local _hx_2
+    if ((_hx_bit.band(h,1)) == 0) then 
+    _hx_2 = u; else 
+    _hx_2 = -u; end
+    return _hx_2
+  end )() + (function() 
+    local _hx_3
+    if ((_hx_bit.band(h,2)) == 0) then 
+    _hx_3 = v; else 
+    _hx_3 = -v; end
+    return _hx_3
+  end )() end;
+end
+__hxnoise_Perlin.prototype = _hx_e();
+__hxnoise_Perlin.prototype.perlin = function(self,x,y,z) 
+  if (self["repeat"] > 0) then 
+    x = _G.math.fmod(x, self["repeat"]);
+    y = _G.math.fmod(y, self["repeat"]);
+    z = _G.math.fmod(z, self["repeat"]);
+  end;
+  local xi = _hx_bit.band(_G.math.floor(x),255);
+  local yi = _hx_bit.band(_G.math.floor(y),255);
+  local zi = _hx_bit.band(_G.math.floor(z),255);
+  local xf = x - _G.math.floor(x);
+  local yf = y - _G.math.floor(y);
+  local zf = z - _G.math.floor(z);
+  local u = self:fade(xf);
+  local v = self:fade(yf);
+  local w = self:fade(zf);
+  local aaa = __hxnoise_Perlin.P[__hxnoise_Perlin.P[__hxnoise_Perlin.P[xi] + yi] + zi];
+  local aba = __hxnoise_Perlin.P[__hxnoise_Perlin.P[__hxnoise_Perlin.P[xi] + self:inc(yi)] + zi];
+  local aab = __hxnoise_Perlin.P[__hxnoise_Perlin.P[__hxnoise_Perlin.P[xi] + yi] + self:inc(zi)];
+  local abb = __hxnoise_Perlin.P[__hxnoise_Perlin.P[__hxnoise_Perlin.P[xi] + self:inc(yi)] + self:inc(zi)];
+  local baa = __hxnoise_Perlin.P[__hxnoise_Perlin.P[__hxnoise_Perlin.P[self:inc(xi)] + yi] + zi];
+  local bba = __hxnoise_Perlin.P[__hxnoise_Perlin.P[__hxnoise_Perlin.P[self:inc(xi)] + self:inc(yi)] + zi];
+  local bab = __hxnoise_Perlin.P[__hxnoise_Perlin.P[__hxnoise_Perlin.P[self:inc(xi)] + yi] + self:inc(zi)];
+  local bbb = __hxnoise_Perlin.P[__hxnoise_Perlin.P[__hxnoise_Perlin.P[self:inc(xi)] + self:inc(yi)] + self:inc(zi)];
+  local x1 = self:lerp(__hxnoise_Perlin.grad(aaa, xf, yf, zf), __hxnoise_Perlin.grad(baa, xf - 1, yf, zf), u);
+  local x2 = self:lerp(__hxnoise_Perlin.grad(aba, xf, yf - 1, zf), __hxnoise_Perlin.grad(bba, xf - 1, yf - 1, zf), u);
+  local y1 = self:lerp(x1, x2, v);
+  x1 = self:lerp(__hxnoise_Perlin.grad(aab, xf, yf, zf - 1), __hxnoise_Perlin.grad(bab, xf - 1, yf, zf - 1), u);
+  x2 = self:lerp(__hxnoise_Perlin.grad(abb, xf, yf - 1, zf - 1), __hxnoise_Perlin.grad(bbb, xf - 1, yf - 1, zf - 1), u);
+  do return (self:lerp(y1, self:lerp(x1, x2, v), w) + 1) / 2 end
+end
+__hxnoise_Perlin.prototype.fade = function(self,t) 
+  do return ((t * t) * t) * ((t * ((t * 6) - 15)) + 10) end
+end
+__hxnoise_Perlin.prototype.inc = function(self,num) 
+  num = num + 1;
+  if (self["repeat"] > 0) then 
+    num = _G.math.fmod(num, self["repeat"]);
+  end;
+  do return num end
+end
+__hxnoise_Perlin.prototype.lerp = function(self,a,b,x) 
+  do return a + (x * (b - a)) end
+end
+-- require this for lua 5.1
+pcall(require, 'bit')
+if bit then
+  _hx_bit_raw = bit
+  _hx_bit = setmetatable({}, { __index = _hx_bit_raw });
+else
+  _hx_bit_raw = _G.require('bit32')
+  _hx_bit = setmetatable({}, { __index = _hx_bit_raw });
+  -- lua 5.2 weirdness
+  _hx_bit.bnot = function(...) return _hx_bit_clamp(_hx_bit_raw.bnot(...)) end;
+  _hx_bit.bxor = function(...) return _hx_bit_clamp(_hx_bit_raw.bxor(...)) end;
+end
+-- see https://github.com/HaxeFoundation/haxe/issues/8849
+_hx_bit.bor = function(...) return _hx_bit_clamp(_hx_bit_raw.bor(...)) end;
+_hx_bit.band = function(...) return _hx_bit_clamp(_hx_bit_raw.band(...)) end;
+_hx_bit.arshift = function(...) return _hx_bit_clamp(_hx_bit_raw.arshift(...)) end;
+
 if _hx_bit_raw then
     _hx_bit_clamp = function(v)
     if v <= 2147483647 and v >= -2147483648 then
@@ -1097,9 +1347,9 @@ local _hx_static_init = function()
   
   Triangles.Far = _hx_tab_array({[0]=_G.vmath.vector3(0, 0, 0), _G.vmath.vector3(0, 1, 0), _G.vmath.vector3(1, 1, 0), _G.vmath.vector3(0, 0, 0), _G.vmath.vector3(1, 1, 0), _G.vmath.vector3(1, 0, 0)}, 6);
   
-  Wool.LightGreen = Vector2Data.new(0, 0.25);
-  
   Wool.Brown = Vector2Data.new(0, 0.5);
+  
+  Wool.Green = Vector2Data.new(0.5, 0.75);
   
   Wool.Shape = _hx_tab_array({[0]=Vector2Data.new(0, 0), Vector2Data.new(0, 0.25), Vector2Data.new(0.25, 0.25), Vector2Data.new(0, 0), Vector2Data.new(0.25, 0.25), Vector2Data.new(0.25, 0)}, 6);
   
@@ -1198,6 +1448,10 @@ local _hx_static_init = function()
     _hx_6 = _g;
     return _hx_6
   end )();
+  
+  __defold_GoMessages.acquire_input_focus = _G.hash("acquire_input_focus");
+  
+  __hxnoise_Perlin.PERMUTATIONS = _hx_tab_array({[0]=151, 160, 137, 91, 90, 15, 131, 13, 201, 95, 96, 53, 194, 233, 7, 225, 140, 36, 103, 30, 69, 142, 8, 99, 37, 240, 21, 10, 23, 190, 6, 148, 247, 120, 234, 75, 0, 26, 197, 62, 94, 252, 219, 203, 117, 35, 11, 32, 57, 177, 33, 88, 237, 149, 56, 87, 174, 20, 125, 136, 171, 168, 68, 175, 74, 165, 71, 134, 139, 48, 27, 166, 77, 146, 158, 231, 83, 111, 229, 122, 60, 211, 133, 230, 220, 105, 92, 41, 55, 46, 245, 40, 244, 102, 143, 54, 65, 25, 63, 161, 1, 216, 80, 73, 209, 76, 132, 187, 208, 89, 18, 169, 200, 196, 135, 130, 116, 188, 159, 86, 164, 100, 109, 198, 173, 186, 3, 64, 52, 217, 226, 250, 124, 123, 5, 202, 38, 147, 118, 126, 255, 82, 85, 212, 207, 206, 59, 227, 47, 16, 58, 17, 182, 189, 28, 42, 223, 183, 170, 213, 119, 248, 152, 2, 44, 154, 163, 70, 221, 153, 101, 155, 167, 43, 172, 9, 129, 22, 39, 253, 19, 98, 108, 110, 79, 113, 224, 232, 178, 185, 112, 104, 218, 246, 97, 228, 251, 34, 242, 193, 238, 210, 144, 12, 191, 179, 162, 241, 81, 51, 145, 235, 249, 14, 239, 107, 49, 192, 214, 31, 181, 199, 106, 157, 184, 84, 204, 176, 115, 121, 50, 45, 127, 4, 150, 254, 138, 236, 205, 93, 222, 114, 67, 29, 24, 72, 243, 141, 128, 195, 78, 66, 215, 61, 156, 180}, 256);
   
   
 end

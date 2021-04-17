@@ -1,11 +1,9 @@
 package;
 
 import Geometry;
-import lua.PairTools;
-import lua.TableTools;
-import defold.Resource;
 import defold.Buffer;
-import haxe.ds.Vector;
+import defold.Resource;
+import hxnoise.Perlin;
 
 typedef Block = {
 	var position:RVector3;
@@ -25,18 +23,41 @@ class Chunk extends Script<ChunkData> {
 	public var chunkSize = {x: 16, y: 16, z: 16};
 
 	override public function init(self:ChunkData):Void {
-		self.position = RVmath.vector3(Go.get_position("."));
+		var perlin = new Perlin();
+		var scale = 1 / 16;
+
+		self.position = RVmath.vector3(Go.get_position());
+
 		self.blocks = [
 			for (x in 0...chunkSize.x) [
 				for (y in 0...chunkSize.y) [
-					for (z in 0...chunkSize.z)
+					for (z in 0...chunkSize.z) {
 						{
 							position: RVmath.vector3(x, y, z),
-							empty: (x % 2 == 0) || (y % 2 == 0)
+							empty: true
 						}
+					}
 				]
 			]
 		];
+
+		for (x in 0...chunkSize.x) {
+			for (z in 0...chunkSize.z) {
+				var dx = (self.position.x + x);
+				var dz = (self.position.z + z);
+				var p = perlin.perlin(dx * scale, 0.3, dz * scale);
+				trace(x, z, dx, dz, p);
+
+				for (y in 0...chunkSize.y) {
+					if (y / chunkSize.y >= p)
+						break;
+
+					self.blocks[x][y][z].empty = false;
+				}
+			}
+		}
+
+		// pprint(self.blocks);
 
 		Go.set("#mesh", "light", Vmath.vector4(0, 64, 0, 0));
 		updateChunk(self);
@@ -57,7 +78,6 @@ class Chunk extends Script<ChunkData> {
 
 					for (face in [Top, Bottom, Left, Right, Far, Near]) {
 						if (neighborIsEmpty(self, block.position, face)) {
-							trace("block is empty");
 							addVertices(self, block.position, face);
 						}
 					}
@@ -66,10 +86,10 @@ class Chunk extends Script<ChunkData> {
 		}
 
 		var buf = Buffer.create(self.vertices.length, untyped __lua__('{
-			{ name = hash("position"), type=buffer.VALUE_TYPE_FLOAT32, count = 3 },
-			{ name = hash("normal"), type=buffer.VALUE_TYPE_FLOAT32, count = 3 },
-			{ name = hash("texcoord0"), type=buffer.VALUE_TYPE_FLOAT32, count = 2 }
-		}'));
+      { name = hash("position"), type=buffer.VALUE_TYPE_FLOAT32, count = 3 },
+      { name = hash("normal"), type=buffer.VALUE_TYPE_FLOAT32, count = 3 },
+      { name = hash("texcoord0"), type=buffer.VALUE_TYPE_FLOAT32, count = 2 }
+    }'));
 		var pos = Buffer.get_stream(buf, "position");
 		var nor = Buffer.get_stream(buf, "normal");
 		var tex = Buffer.get_stream(buf, "texcoord0");
@@ -117,13 +137,13 @@ class Chunk extends Script<ChunkData> {
 		}
 
 		if (p.x < 0 || p.x >= chunkSize.x) {
-			return true;
+			return false;
 		}
 		if (p.y < 0 || p.y >= chunkSize.y) {
-			return true;
+			return false;
 		}
 		if (p.z < 0 || p.z >= chunkSize.z) {
-			return true;
+			return false;
 		}
 
 		var block = self.blocks[p.x][p.y][p.z];
@@ -138,7 +158,7 @@ class Chunk extends Script<ChunkData> {
 			case Top:
 				tri = Triangles.Top;
 				nor = Normals.Top;
-				tex = Wool.LightGreen;
+				tex = Wool.Green;
 			case Bottom:
 				tri = Triangles.Bottom;
 				nor = Normals.Bottom;
